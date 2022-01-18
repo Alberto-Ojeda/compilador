@@ -1,0 +1,87 @@
+package fes.aragon.compilador;
+import java_cup.runtime.*;
+import java.io.*;
+import java.util.*;
+
+action code{:
+	public void imprimirValor(String str){
+		System.out.println("Valor del token es: "+str);
+	}
+:};
+parser code{:
+
+public static Lexico lex;
+	
+	
+	public void cargar(String archivo) throws Exception{	
+		lex=new Lexico(new FileInputStream(new File(archivo)));
+		new parser(lex).parse();
+	}
+	
+:};
+terminal PUNTOYCOMA,CIERREI,CIERRED;
+terminal Boolean TRUE, FALSE, NOT;  
+terminal Boolean AND, OR;
+
+
+
+
+
+non terminal S;
+non terminal Boolean E,T,F;
+
+precedence left OR,AND,NOT;
+precedence left CIERRED,CIERREI;
+
+            S ::=E:e PUNTOYCOMA
+                {:
+             
+                System.out.println("resultado de la linea "+ e);
+                    imprimirValor(String.valueOf(e));
+                :};
+         
+          E ::=T:e1 OR E:e2 
+                {:
+                    RESULT=new Boolean(e1.booleanValue() || e2.booleanValue());
+                :}
+         |CIERREI T:e1 OR E:e2 CIERRED 
+                {:
+                    RESULT=new Boolean(e1.booleanValue() || e2.booleanValue());
+                :}
+	    |T:e1  
+                {: 
+                  RESULT= new Boolean(e1.booleanValue()); :}
+		|error {:;:};
+           
+    T::= T:e1 AND F:e2
+                 {:
+                    RESULT=new Boolean(e1.booleanValue() && e2.booleanValue());
+                :}
+             |CIERREI T:e1 AND F:e2 CIERRED
+                 {:
+                    RESULT=new Boolean(e1.booleanValue() && e2.booleanValue());
+                :}
+             |F:e2
+               {:
+                    RESULT=new Boolean(e2.booleanValue());
+                :};
+
+
+           F::=NOT F:e2 
+            {: 
+                  RESULT= new Boolean(!e2.booleanValue()); 
+            :}
+
+             |TRUE
+                {: 
+                  RESULT= TRUE; 
+                :}
+
+             |FALSE
+            {: 
+                  RESULT= FALSE; :}
+             |CIERREI F:e2 CIERRED 
+            {: 
+                  RESULT= e2; 
+            :}
+;
